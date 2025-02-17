@@ -3,12 +3,46 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>My GitHub Website</title>
+    <title>Random Map Points</title>
+    <!-- Leaflet CSS -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.3/dist/leaflet.css" />
+    <style>
+        #map {
+            height: 500px;
+            width: 100%;
+        }
+    </style>
 </head>
 <body>
-    <h1>Welcome to My GitHub Website</h1>
-    <p>This is a simple GitHub Pages site.</p>
-    <p>It is hosted directly from the master branch of the repository.</p>   
-    <p>test</p>     
+    <h1>Map with 5 Random Points</h1>
+    <div id="map"></div>
+
+    <!-- Leaflet JS -->
+    <script src="https://unpkg.com/leaflet@1.9.3/dist/leaflet.js"></script>
+    <script>
+        // Initialize the map
+        const map = L.map('map').setView([0, 0], 2); // Start at the world view
+
+        // Add OpenStreetMap tiles
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            attribution: '© OpenStreetMap contributors'
+        }).addTo(map);
+
+        // Function to generate a random latitude and longitude
+        function getRandomCoordinates() {
+            const lat = (Math.random() * 180 - 90).toFixed(6); // Latitude: -90 to 90
+            const lng = (Math.random() * 360 - 180).toFixed(6); // Longitude: -180 to 180
+            return [parseFloat(lat), parseFloat(lng)];
+        }
+
+        // Add 5 random points to the map
+        for (let i = 0; i < 5; i++) {
+            const [lat, lng] = getRandomCoordinates();
+            const marker = L.marker([lat, lng]).addTo(map);
+
+            // Add a popup to display the coordinates
+            marker.bindPopup(`<b>Point ${i + 1}</b><br>Lat: ${lat}<br>Lng: ${lng}`);
+        }
+    </script>
 </body>
 </html>
