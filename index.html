@@ -1,115 +1,43 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Interactive Map with Points</title>
-    <!-- Leaflet CSS -->
-    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.3/dist/leaflet.css" />
-    <style>
-        #map {
-            height: 500px;
-            width: 100%;
-        }
-    </style>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Geni API Fetch</title>
 </head>
 <body>
-    <h1>Interactive Map with Random Points</h1>
-    <button id="add-points-btn">Add 5 More Points</button>
-    <button id="export-map-btn">Export Map</button>
-    <div id="map"></div>
+  <h1>Fetch Data from Geni API</h1>
+  <button id="fetch-button">Fetch Data</button>
+  <pre id="output"></pre>
 
-    <!-- Leaflet JS -->
-    <script src="https://unpkg.com/leaflet@1.9.3/dist/leaflet.js"></script>
-    <!-- Leaflet EasyPrint Plugin -->
-    <script src="https://rawgit.com/rowanwins/leaflet-easyPrint/gh-pages/dist/bundle.js"></script>
-    <script>
-        // Initialize the map
-        const map = L.map('map').setView([0, 0], 2); // Start at the world view
+  <script>
+    const token = "YOUR_ACCESS_TOKEN"; // Replace with your actual token
+    const profileId = "12142390"; // Replace with the profile ID you want to fetch
 
-        // Add OpenStreetMap tiles
-        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-            attribution: '© OpenStreetMap contributors'
-        }).addTo(map);
+    document.getElementById("fetch-button").addEventListener("click", () => {
+      const url = `https://www.geni.com/api/${profileId}/immediate-family`;
 
-        // Function to generate a random latitude and longitude
-        function getRandomCoordinates() {
-            const lat = (Math.random() * 180 - 90).toFixed(6); // Latitude: -90 to 90
-            const lng = (Math.random() * 360 - 180).toFixed(6); // Longitude: -180 to 180
-            return [parseFloat(lat), parseFloat(lng)];
+      fetch(url, {
+        method: "GET",
+        headers: {
+          "Authorization": `Bearer ${token}`
         }
-
-        // Arrays to keep track of markers
-        const originalMarkers = [];
-        const additionalMarkers = [];
-
-        // Helper function to create a custom colored marker icon
-        function createCustomIcon(color) {
-            return L.icon({
-                iconUrl: `https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-2x-${color}.png`,
-                shadowUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.3/images/marker-shadow.png',
-                iconSize: [25, 41],
-                iconAnchor: [12, 41],
-                popupAnchor: [1, -34],
-                shadowSize: [41, 41]
-            });
-        }
-
-        // Add 5 random points initially (green markers)
-        for (let i = 0; i < 5; i++) {
-            const [lat, lng] = getRandomCoordinates();
-            const marker = L.marker([lat, lng], {
-                icon: createCustomIcon('green')
-            }).addTo(map);
-
-            // Add a popup to display the coordinates
-            marker.bindPopup(`<b>Original Point ${i + 1}</b><br>Lat: ${lat}<br>Lng: ${lng}`);
-            originalMarkers.push(marker);
-        }
-
-        // Function to add 5 more points and change one original point's color
-        function addMorePoints() {
-            // Add 5 new points with a different color (blue markers)
-            for (let i = 0; i < 5; i++) {
-                const [lat, lng] = getRandomCoordinates();
-                const newMarker = L.marker([lat, lng], {
-                    icon: createCustomIcon('blue')
-                }).addTo(map);
-
-                newMarker.bindPopup(`<b>New Point ${i + 1}</b><br>Lat: ${lat}<br>Lng: ${lng}`);
-                additionalMarkers.push(newMarker);
-            }
-
-            // Change one of the original points to a third color (red marker)
-            const randomIndex = Math.floor(Math.random() * originalMarkers.length);
-            const markerToChange = originalMarkers[randomIndex];
-            const latLng = markerToChange.getLatLng();
-
-            // Remove the old marker and add a new one with a red icon
-            map.removeLayer(markerToChange);
-            const updatedMarker = L.marker([latLng.lat, latLng.lng], {
-                icon: createCustomIcon('red')
-            }).addTo(map);
-
-            updatedMarker.bindPopup(`<b>Updated Point</b><br>Lat: ${latLng.lat}<br>Lng: ${latLng.lng}`);
-            originalMarkers[randomIndex] = updatedMarker;
-        }
-
-        // Attach the function to the button click
-        document.getElementById('add-points-btn').addEventListener('click', addMorePoints);
-
-        // Add EasyPrint control to export the map
-        const printer = L.easyPrint({
-            title: 'Export Map',
-            position: 'topright',
-            exportOnly: true,
-            filename: 'my-map'
-        }).addTo(map);
-
-        // Attach export functionality to the button
-        document.getElementById('export-map-btn').addEventListener('click', () => {
-            printer.printMap('CurrentSize', 'my-map');
+      })
+        .then(response => {
+          if (!response.ok) {
+            throw new Error(`HTTP error! Status: ${response.status}`);
+          }
+          return response.json();
+        })
+        .then(data => {
+          console.log("API Response:", data);
+          document.getElementById("output").textContent = JSON.stringify(data, null, 2);
+        })
+        .catch(error => {
+          console.error("Error:", error);
+          document.getElementById("output").textContent = `Error: ${error.message}`;
         });
-    </script>
+    });
+  </script>
 </body>
 </html>
