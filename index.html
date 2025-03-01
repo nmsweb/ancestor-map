@@ -118,6 +118,65 @@
         }).setView([20, 0], 2);
 
         L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(map);
+
+        function extractProfileId(url) {
+            const match = url.match(/geni\.com\/(?:people|profile)\/[^/]+\/([0-9]+)/);
+            return match ? match[1] : null;
+        }
+
+        function jitterCoordinates(lat, lon, jitterAmount = 0.005) {  // Increased jitter
+            return [
+                lat + (Math.random() * 2 - 1) * jitterAmount,
+                lon + (Math.random() * 2 - 1) * jitterAmount
+            ];
+        }
+
+
+
+        function fetchData() {
+            const input = document.getElementById("urlInput").value;
+            const profileId = extractProfileId(input);
+            if (!profileId) {
+                alert("Invalid Geni profile URL");
+                return;
+            }
+            
+            document.getElementById("loading").style.display = "block";
+
+            fetch(`http://127.0.0.1:5000/ancestors/${profileId}`)
+                .then(response => response.json())
+                .then(data => {
+                    console.log("Fetched Ancestor Data:", data);  // Debugging log
+
+                    document.getElementById("loading").style.display = "none";
+                    map.eachLayer(layer => {
+                        if (layer instanceof L.Marker) {
+                            map.removeLayer(layer);
+                        }
+                    });
+                    data.ancestors.forEach(ancestor => {
+                        console.log(`Processing: ${ancestor.name}, Birthdate: ${ancestor.birth_date}, Birthplace: ${ancestor.birth_place}`); // Debugging log
+
+                        if (ancestor.coordinates) {
+                            const [jitteredLat, jitteredLon] = jitterCoordinates(...ancestor.coordinates);
+                            console.log(`Adding marker for ${ancestor.name} at:`, jitteredLat, jitteredLon);
+                            const marker = L.marker([jitteredLat, jitteredLon]).addTo(map);
+                            marker.bindPopup(`<b>${ancestor.name}</b><br>
+                                Birthdate: ${ancestor.birth_date || 'Unknown'}<br>
+                                Birthplace: ${ancestor.birth_place || 'Unknown'}<br>
+                                <a href="${ancestor.url}" target="_blank">View on Geni</a>`);
+                        }
+                    });
+                })
+                .catch(error => {
+                    document.getElementById("loading").style.display = "none";
+                    console.error("Error fetching ancestor data:", error);
+                });
+
+
+        }
+
     </script>
 </body>
 </html>
+
