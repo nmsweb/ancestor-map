@@ -92,9 +92,55 @@
             color: #6a11cb;
             animation: fadeIn 0.5s ease-in-out;
         }
+        #title {
+            margin-top: 20px;
+            font-size: 1.5rem;
+            font-weight: 600;
+            color: #fff;
+            display: none;
+        }
         @keyframes fadeIn {
             from { opacity: 0; }
             to { opacity: 1; }
+        }
+        /* Mobile responsiveness */
+        @media (max-width: 768px) {
+            h1 {
+                font-size: 2rem;
+                padding: 15px 30px;
+            }
+            #container {
+                padding: 20px;
+                max-width: 90%;
+            }
+            #map {
+                height: 400px;
+                width: 100%;
+            }
+            input, button {
+                padding: 10px;
+                font-size: 0.9rem;
+            }
+            button {
+                font-size: 1.1rem;
+            }
+        }
+        @media (max-width: 480px) {
+            h1 {
+                font-size: 1.8rem;
+                padding: 10px 20px;
+            }
+            #container {
+                padding: 15px;
+                max-width: 95%;
+            }
+            input, button {
+                padding: 8px;
+                font-size: 0.85rem;
+            }
+            #map {
+                height: 300px;
+            }
         }
     </style>
 </head>
@@ -105,6 +151,7 @@
         <button onclick="fetchData()">Submit</button>
         <div id="loading">⏳ Please wait... Fetching data</div>
     </div>
+    <div id="title"></div>
     <div id="map"></div>
 
     <script>
@@ -131,8 +178,6 @@
             ];
         }
 
-
-
         function fetchData() {
             const input = document.getElementById("urlInput").value;
             const profileId = extractProfileId(input);
@@ -142,13 +187,17 @@
             }
             
             document.getElementById("loading").style.display = "block";
+            document.getElementById("title").style.display = "none"; // Hide title while loading
 
-            fetch(`http://127.0.0.1:5000/ancestors/${profileId}`)
+            fetch(`https://geniback.onrender.com/ancestors/${profileId}`)
                 .then(response => response.json())
                 .then(data => {
                     console.log("Fetched Ancestor Data:", data);  // Debugging log
 
                     document.getElementById("loading").style.display = "none";
+                    document.getElementById("title").style.display = "block"; // Show title after data is loaded
+                    document.getElementById("title").innerText = `${data.ancestors[0]?.name}'s Ancestor Map`; // Display title dynamically
+
                     map.eachLayer(layer => {
                         if (layer instanceof L.Marker) {
                             map.removeLayer(layer);
@@ -172,11 +221,7 @@
                     document.getElementById("loading").style.display = "none";
                     console.error("Error fetching ancestor data:", error);
                 });
-
-
         }
-
     </script>
 </body>
 </html>
-
